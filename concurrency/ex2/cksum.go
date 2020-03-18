@@ -12,13 +12,22 @@ import (
 
 func main() {
 	// TODO: parallelize the checksum calculation
+	semafor := make(chan bool, 100)
+
 	for _, path := range Files() {
-		hash, err := Hash(path)
-		if err != nil {
-			fmt.Printf("ERROR: %s", err)
-			continue
-		}
-		fmt.Printf("%x\t%s\n", hash, path)
+		semafor <- true
+		go func(p string) {
+			defer func() { <-semafor }()
+			hash, err := Hash(p)
+			if err != nil {
+				fmt.Printf("ERROR: %s", err)
+			} else {
+				fmt.Printf("%x\t%s\n", hash, p)
+			}
+		}(path)
+	}
+	for i := 0; i < cap(semafor); i++ {
+		semafor <- true
 	}
 	// END
 }

@@ -23,13 +23,15 @@ Introduction to the language, with [exercises](intro/README.md):
 
 ### 2020-03-16
 
-Concurrency, Context.
+Concurrency 1.
 
 ### 2020-03-23
 
-Concurrency patterns.
+Concurrency 2.
 
 ### 2020-03-30
+
+Concurrency 3.
 
 ### 2020-04-06
 

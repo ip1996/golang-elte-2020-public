@@ -18,7 +18,7 @@ func main() {
 	for _, word := range text {
 		fmt.Println(translate(word))
 	}
-	// END
+	// END OMIT
 
 	if time.Since(start) > time.Duration(len(text))*80*time.Millisecond {
 		fmt.Println("Too late...")

@@ -29,7 +29,7 @@ func main() {
 	for i := 0; i < cap(semafor); i++ {
 		semafor <- true
 	}
-	// END
+	// END OMIT
 }
 
 // Hash calculates a checksum of a file.
@@ -57,7 +57,7 @@ func Files() []string {
 		// Walk will return no error, because all WalkFunc always returns nil.
 		filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				fmt.Printf("ERROR: unable to access %q", path)
+				fmt.Printf("ERROR: unable to access %q\n", path)
 				return nil
 			}
 			if info.Mode()&os.ModeType != 0 {

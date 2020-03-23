@@ -10,24 +10,35 @@ import (
 	"path/filepath"
 )
 
+//Hashes stores information about the hashed files
+type Hashes struct {
+	path string
+	hash []byte
+	err  error
+}
+
 func main() {
 	// TODO: parallelize the checksum calculation
-	semafor := make(chan bool, 100)
-
-	for _, path := range Files() {
-		semafor <- true
+	hashesQueu := make(chan Hashes, 100)
+	guard := make(chan struct{}, 100)
+	files := Files()
+	filesLen := len(files)
+	for _, path := range files {
+		guard <- struct{}{}
 		go func(p string) {
-			defer func() { <-semafor }()
 			hash, err := Hash(p)
-			if err != nil {
-				fmt.Printf("ERROR: %s", err)
-			} else {
-				fmt.Printf("%x\t%s\n", hash, p)
-			}
+			hashesQueu <- Hashes{path: p, hash: hash, err: err}
+			<-guard
 		}(path)
 	}
-	for i := 0; i < cap(semafor); i++ {
-		semafor <- true
+
+	for i := 0; i < filesLen; i++ {
+		evHash := <-hashesQueu
+		if evHash.err != nil {
+			fmt.Printf("ERROR: %s\n", evHash.err)
+			continue
+		}
+		fmt.Printf("%x\t%s\n", evHash.hash, evHash.path)
 	}
 	// END OMIT
 }

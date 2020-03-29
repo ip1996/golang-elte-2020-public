@@ -8,9 +8,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
+//main is checking for modifications on the fileset in every second
 func main() {
 	prev := HashAll()
 	for ts := range time.Tick(time.Second) {
@@ -26,12 +28,14 @@ func main() {
 	}
 }
 
+//Hashed is a struct for storing the file path and hash value or error
 type Hashed struct {
 	Path string
 	Hash []byte
 	Err  error // Hash is invalid, in case of an error
 }
 
+//HashedEqual compares two hashed values
 func HashedEqual(before, after *Hashed) bool {
 	if before == nil || after == nil {
 		return before == nil && after == nil
@@ -53,6 +57,7 @@ func HashedEqual(before, after *Hashed) bool {
 	return true
 }
 
+//FileSet is a mapping between pathes and hashed values
 type FileSet map[string]*Hashed
 
 // CompareFileSets compares checksums of files to detect differences.
@@ -73,12 +78,24 @@ func CompareFileSets(before, after FileSet) (added, edited, deleted []string) {
 	return added, edited, deleted
 }
 
+//HashAll fills up a shared map during goroutines with the hashed values of the filesystem
 func HashAll() FileSet {
 	// TODO: parallelize the checksum calculation
+	mu := sync.Mutex{}
+	wg := sync.WaitGroup{}
+
 	results := make(FileSet)
 	for _, path := range Files() {
-		results[path] = Hash(path)
+		wg.Add(1)
+		go func(p string) {
+			defer wg.Done()
+			h := Hash(p)
+			mu.Lock()
+			defer mu.Unlock()
+			results[p] = h
+		}(path)
 	}
+	wg.Wait()
 	// END OMIT
 	return results
 }

@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+// The main function is the entrypoint for our program, which is checking for modifications on the given fileset in every second.
+// If there is a modification it will be printed to the console.
 func main() {
 	prev := HashAll()
 	for ts := range time.Tick(time.Second) {
@@ -27,12 +29,14 @@ func main() {
 	}
 }
 
+// Hashed is a struct for storing the file path and hash value or the error if hashing fails.
 type Hashed struct {
 	Path string
 	Hash []byte
 	Err  error // Hash is invalid, in case of an error
 }
 
+// HashedEqual compares two hashed values.
 func HashedEqual(before, after *Hashed) bool {
 	if before == nil || after == nil {
 		return before == nil && after == nil
@@ -54,6 +58,7 @@ func HashedEqual(before, after *Hashed) bool {
 	return true
 }
 
+// FileSet is a mapping between pathes and their hashed values.
 type FileSet map[string]*Hashed
 
 // CompareFileSets compares checksums of files to detect differences.
@@ -74,15 +79,21 @@ func CompareFileSets(before, after FileSet) (added, edited, deleted []string) {
 	return added, edited, deleted
 }
 
+// HashAll fills up a shared map during goroutines with pathes and their hashed values of the filesystem
+// or error if hashing fails.
+// The maximum number of launchable goroutines is limited to 100.
 func HashAll() FileSet {
 	// TODO: max 100 concurrent I/O
 	results := make(FileSet)
 	mu := sync.Mutex{}
 	wg := sync.WaitGroup{}
+	sem := make(chan struct{}, 100)
 	for _, path := range Files() {
 		wg.Add(1)
+		sem <- struct{}{}
 		go func(path string) {
 			defer wg.Done()
+			defer func() { <-sem }()
 			hash := Hash(path)
 			mu.Lock()
 			defer mu.Unlock()

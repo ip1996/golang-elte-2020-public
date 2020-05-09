@@ -45,9 +45,14 @@ func main() {
 
 	// TODO(feladat): fuzd fel az app utvonalait (`application.Routes(chi.NewRouter())`) a feljebb definialt routerre (`r`) ugy, hogy a `/api/...` utvonalon legyenek elerhetoek
 	// <???>
+	r.Mount("/api", application.Routes(chi.NewRouter()))
 
 	// Start the HTTP server
 	logger.Info("Listening", zap.String("addr", *addr))
 	// TODO(feladat): inditsd el a szerver http a fenti routerrel (`r`) a parameterul kapott (`*addr`) cimen
 	// Ne felejtsd el a hibat is lekezelni!
+	err = http.ListenAndServe(*addr, r)
+	if err != nil {
+		logger.Fatal("server failure", zap.Error(err))
+	}
 }

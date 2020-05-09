@@ -145,6 +145,7 @@ func TestAddHandlerInvalidInput(t *testing.T) {
 	}
 }
 
+//TODO (feladat): javitsd ki ezt a tesztet is!
 func TestAddHandlerDBError(t *testing.T) {
 	dbMock := &mockDatabase{}
 	app := NewApp(zap.NewNop(), dbMock)
@@ -153,7 +154,7 @@ func TestAddHandlerDBError(t *testing.T) {
 		Return(nil, errors.New("testError"))
 
 	rr := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader(`{"name":"testName","message":"testMessage"}`))
+	req, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader(`{"name":"testName","msg":"testMessage"}`))
 	req = injectNameIntoRequest(req)
 	app.handleAdd(rr, req)
 
@@ -172,7 +173,8 @@ func TestAddHandlerOK(t *testing.T) {
 		}, nil)
 
 	rr := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader(`{"message":"testMessage"}`))
+	req, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader(`{"msg":"testMessage"}`))
+	req = injectNameIntoRequest(req)
 	// <???>
 	app.handleAdd(rr, req)
 

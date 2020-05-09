@@ -36,9 +36,9 @@ type addResponse struct {
 // TODO(feladat): Toltsd ki a hianyzo (<???>) struct taget a megfelelo ertekkel
 type message struct {
 	ID      int       `json:"id"`
-	Name    string    `json:"<???>"`
-	Message string    `json:"<???>"`
-	Created time.Time `json:"<???>"`
+	Name    string    `json:"user"`
+	Message string    `json:"msg"`
+	Created time.Time `json:"date"`
 }
 type listResponse struct {
 	Messages []message `json:"messages"`
@@ -90,6 +90,10 @@ func (a *App) handleAdd(w http.ResponseWriter, r *http.Request) {
 	// TODO(feladat): Adj hozza egy bemenet ellenorzest a kodhoz, ami ures input.Message eseten a megfelelo http hibaval ter vissza
 	// Itt a `TestAddHandlerInvalidInput`-nak es a `TestAddHandlerInvalidInput` kell tudnia lefutnia megfeleloen.
 	// <???>
+	if input.Message == "" {
+		sendError(a.logger, w, errors.New("message could not be empty"), http.StatusBadRequest)
+		return
+	}
 
 	res, err := a.db.Exec("INSERT INTO message (`name`, `message`) VALUES (?,?)", name, input.Message)
 	if err != nil {
